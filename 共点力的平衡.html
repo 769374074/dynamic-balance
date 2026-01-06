@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>共点力的平衡虚拟实验</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            display: flex;
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .experiment-area {
+            flex: 1;
+            padding: 20px;
+            border-right: 1px solid #eee;
+        }
+        
+        .control-panel {
+            width: 320px;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        
+        h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #34495e;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+        
+        canvas {
+            display: block;
+            margin: 0 auto;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .control-group {
+            margin-bottom: 20px;
+        }
+        
+        .control-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        input[type="number"], input[type="text"], select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            margin-bottom: 8px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 10px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        button#startBtn {
+            background-color: #2ecc71;
+        }
+        
+        button#startBtn:hover {
+            background-color: #27ae60;
+        }
+        
+        button#clearBtn {
+            background-color: #e74c3c;
+        }
+        
+        button#clearBtn:hover {
+            background-color: #c0392b;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .checkbox-group input {
+            margin-right: 8px;
+        }
+        
+        .force-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+        
+        .force-item {
+            padding: 10px;
+            margin-bottom: 8px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .force-item.balance-force {
+            border-left-color: #e74c3c;
+        }
+        
+        .info-box {
+            background-color: #e8f4fd;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        
+        .data-table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        
+        .data-table th, .data-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        
+        .data-table th {
+            background-color: #f2f2f2;
+        }
+        
+        .data-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .data-table tr:hover {
+            background-color: #f1f1f1;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+        }
+        
+        .tab.active {
+            background-color: white;
+            border-bottom: 1px solid white;
+            margin-bottom: -1px;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 20px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>共点力的平衡虚拟实验</h1>
+    
+    <div class="tabs">
+        <div class="tab active" data-tab="experiment">实验操作</div>
+        <div class="tab" data-tab="instructions">实验说明</div>
+        <div class="tab" data-tab="principles">实验原理</div>
+        <div class="tab" data-tab="design">实验设计</div>
+    </div>
+    
+    <div class="tab-content active" id="experiment">
+        <div class="container">
+            <div class="experiment-area">
+                <canvas id="forceCanvas" width="800" height="600"></canvas>
+                
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>力</th>
+                            <th>大小 (N)</th>
+                            <th>方向 (°)</th>
+                            <th>X分量 (N)</th>
+                            <th>Y分量 (N)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTableBody">
+                        <!-- 数据行将动态生成 -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="control-panel">
+                <h2>实验参数设置</h2>
+                
+                <div class="control-group">
+                    <div class="control-item">
+                        <label for="scale">标度 (像素/N):</label>
+                        <input type="number" id="scale" min="1" max="100" value="2" step="0.1">
+                    </div>
+                    
+                    <div class="control-item">
+                        <label for="forceCount">力的数量:</label>
+                        <input type="number" id="forceCount" min="1" max="8" value="3">
+                    </div>
+                    
+                    <div class="control-item">
+                        <label for="balanceForce">平衡力选择:</label>
+                        <select id="balanceForce">
+                            <option value="auto">自动选择(最后一个力)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <h2>力的设置</h2>
+                <div class="force-list" id="forceList">
+                    <!-- 力的设置项将动态生成 -->
+                </div>
+                
+                <div class="control-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="showParallelogram" checked>
+                        <label for="showParallelogram">显示平行四边形定则作图痕迹</label>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="showTrace">
+                        <label for="showTrace">显示平衡力变化痕迹</label>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="showResultant" checked>
+                        <label for="showResultant">显示合力F<sub>合</sub></label>
+                    </div>
+                </div>
+                
+                <div class="button-group">
+                    <button id="startBtn">开始实验</button>
+                    <button id="clearBtn">清除痕迹</button>
+                </div>
+                
+                <div class="info-box">
+                    <p><strong>使用说明:</strong></p>
+                    <p>1. 设置标度和力的数量</p>
+                    <p>2. 设置每个力的大小和方向</p>
+                    <p>3. 点击"开始实验"按钮</p>
+                    <p>4. 观察力的合成与平衡</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="tab-content" id="instructions">
+        <h2>实验说明</h2>
+        <div style="padding: 20px; line-height: 1.6;">
+            <h3>实验目的</h3>
+            <p>1. 理解共点力平衡的条件</p>
+            <p>2. 掌握力的平行四边形定则</p>
+            <p>3. 验证物体在共点力作用下的平衡条件</p>
+            
+            <h3>实验器材</h3>
+            <p>虚拟实验平台、力传感器、坐标纸</p>
+            
+            <h3>实验步骤</h3>
+            <p>1. 设置标度：确定力的图示比例尺</p>
+            <p>2. 设置力的数量：选择参与实验的力（最多8个）</p>
+            <p>3. 设置各力参数：输入力的大小和方向</p>
+            <p>4. 选择平衡力：确定哪个力作为平衡力</p>
+            <p>5. 开始实验：观察力的合成过程</p>
+            <p>6. 调整参数：改变力的大小或方向，观察平衡力的变化</p>
+            <p>7. 记录数据：观察数据表格中各力的变化情况</p>
+            
+            <h3>注意事项</h3>
+            <p>1. 力的方向是指与x轴正方向的夹角，范围为0°到360°</p>
+            <p>2. 平衡力的大小和方向会根据其他力的合力自动调整</p>
+            <p>3. 可以通过显示/隐藏功能观察力的合成过程</p>
+        </div>
+    </div>
+    
+    <div class="tab-content" id="principles">
+        <h2>实验原理</h2>
+        <div style="padding: 20px; line-height: 1.6;">
+            <h3>共点力的平衡条件</h3>
+            <p>物体在共点力作用下处于平衡状态时，这些力的合力为零。即：</p>
+            <p style="text-align: center; font-size: 18px; margin: 15px 0;">F<sub>合</sub> = 0</p>
+            <p>在直角坐标系中，可以分解为：</p>
+            <p style="text-align: center; font-size: 18px; margin: 15px 0;">ΣF<sub>x</sub> = 0, ΣF<sub>y</sub> = 0</p>
+            
+            <h3>力的合成与分解</h3>
+            <p>1. 平行四边形定则：两个共点力的合力可以用表示这两个力的线段为邻边作平行四边形，这两个邻边之间的对角线就表示合力的大小和方向。</p>
+            <p>2. 三角形定则：将两个力首尾相接，从第一个力的起点指向第二个力的终点的有向线段就是这两个力的合力。</p>
+            <p>3. 正交分解法：将各力分解到互相垂直的两个坐标轴上，分别求各坐标轴上的合力。</p>
+            
+            <h3>平衡力的确定</h3>
+            <p>在实验中，我们选择一个力作为平衡力，其大小等于其他所有力的合力大小，方向与合力方向相反。即：</p>
+            <p style="text-align: center; font-size: 18px; margin: 15px 0;">F<sub>平衡</sub> = -F<sub>合</sub></p>
+            
+            <h3>力的图示法</h3>
+            <p>用带箭头的线段表示力，线段的长度表示力的大小，箭头的指向表示力的方向，箭尾表示力的作用点。</p>
+        </div>
+    </div>
+    
+    <div class="tab-content" id="design">
+        <h2>实验设计</h2>
+        <div style="padding: 20px; line-height: 1.6;">
+            <h3>设计思路</h3>
+            <p>本实验通过虚拟平台模拟共点力的平衡条件，利用力的图示法和平行四边形定则，直观展示力的合成与分解过程，验证物体在共点力作用下的平衡条件。</p>
+            
+            <h3>实验变量</h3>
+            <p>1. 自变量：力的大小、方向</p>
+            <p>2. 因变量：平衡力的大小、方向，合力的大小和方向</p>
+            <p>3. 控制变量：标度、力的作用点</p>
+            
+            <h3>数据记录与处理</h3>
+            <p>1. 记录各力的大小和方向</p>
+            <p>2. 计算各力的x分量和y分量</p>
+            <p>3. 计算合力的大小和方向</p>
+            <p>4. 验证合力是否为零</p>
+            
+            <h3>误差分析</h3>
+            <p>1. 图示误差：力的图示可能存在视觉误差</p>
+            <p>2. 计算误差：浮点数计算可能存在精度误差</p>
+            <p>3. 操作误差：参数调整可能不够精确</p>
+            
+            <h3>实验拓展</h3>
+            <p>1. 探究不同数量力的平衡条件</p>
+            <p>2. 研究特殊角度下力的平衡</p>
+            <p>3. 验证力的三角形定则</p>
+        </div>
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const canvas = document.getElementById('forceCanvas');
+        const ctx = canvas.getContext('2d');
+        const scaleInput = document.getElementById('scale');
+        const forceCountInput = document.getElementById('forceCount');
+        const balanceForceSelect = document.getElementById('balanceForce');
+        const forceList = document.getElementById('forceList');
+        const showParallelogramCheckbox = document.getElementById('showParallelogram');
+        const showTraceCheckbox = document.getElementById('showTrace');
+        const showResultantCheckbox = document.getElementById('showResultant');
+        const startBtn = document.getElementById('startBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const dataTableBody = document.getElementById('dataTableBody');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        // 实验状态
+        let isExperimentRunning = false;
+        let forces = [];
+        let balanceForceIndex = 0;
+        let parallelogramPoints = [];
+        let balanceForceTrace = [];
+        let resultantForce = { magnitude: 0, direction: 0 };
+        
+        // 初始化
+        function init() {
+            updateForceCount();
+            drawCanvas();
+            updateDataTable();
+            
+            // 添加事件监听
+            scaleInput.addEventListener('input', handleScaleChange);
+            forceCountInput.addEventListener('input', updateForceCount);
+            startBtn.addEventListener('click', toggleExperiment);
+            clearBtn.addEventListener('click', clearTraces);
+            showParallelogramCheckbox.addEventListener('change', drawCanvas);
+            showTraceCheckbox.addEventListener('change', drawCanvas);
+            showResultantCheckbox.addEventListener('change', drawCanvas);
+            
+            // 标签页切换
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.getAttribute('data-tab');
+                    
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    
+                    tab.classList.add('active');
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+        }
+        
+        // 处理标度变化
+        function handleScaleChange() {
+            const scale = parseFloat(scaleInput.value);
+            if (scale <= 0) {
+                scaleInput.value = 0.1;
+            }
+            
+            // 更新所有力的范围
+            updateForceRanges();
+            drawCanvas();
+        }
+        
+        // 更新力的数量
+        function updateForceCount() {
+            const count = parseInt(forceCountInput.value);
+            if (count < 1) forceCountInput.value = 1;
+            if (count > 8) forceCountInput.value = 8;
+            
+            const currentCount = forces.length;
+            const newCount = parseInt(forceCountInput.value);
+            
+            // 添加或移除力
+            if (newCount > currentCount) {
+                for (let i = currentCount; i < newCount; i++) {
+                    forces.push({
+                        name: `F${i+1}`,
+                        magnitude: 50,
+                        direction: i * 45,
+                        isBalance: i === newCount - 1
+                    });
+                }
+            } else if (newCount < currentCount) {
+                forces = forces.slice(0, newCount);
+                // 确保最后一个力是平衡力
+                if (forces.length > 0) {
+                    forces[forces.length - 1].isBalance = true;
+                }
+            }
+            
+            // 更新平衡力选择下拉框
+            updateBalanceForceSelect();
+            
+            // 更新力的设置界面
+            updateForceControls();
+            
+            // 更新力的范围
+            updateForceRanges();
+            
+            drawCanvas();
+            updateDataTable();
+        }
+        
+        // 更新平衡力选择下拉框
+        function updateBalanceForceSelect() {
+            balanceForceSelect.innerHTML = '<option value="auto">自动选择(最后一个力)</option>';
+            
+            forces.forEach((force, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = force.name;
+                if (force.isBalance) {
+                    option.selected = true;
+                    balanceForceIndex = index;
+                }
+                balanceForceSelect.appendChild(option);
+            });
+            
+            balanceForceSelect.addEventListener('change', function() {
+                if (this.value === 'auto') {
+                    balanceForceIndex = forces.length - 1;
+                } else {
+                    balanceForceIndex = parseInt(this.value);
+                }
+                
+                // 更新力的平衡状态
+                forces.forEach((force, index) => {
+                    force.isBalance = index === balanceForceIndex;
+                });
+                
+                updateForceControls();
+                drawCanvas();
+                updateDataTable();
+            });
+        }
+        
+        // 更新力的设置界面
+        function updateForceControls() {
+            forceList.innerHTML = '';
+            
+            forces.forEach((force, index) => {
+                const forceItem = document.createElement('div');
+                forceItem.className = `force-item ${force.isBalance ? 'balance-force' : ''}`;
+                
+                forceItem.innerHTML = `
+                    <label for="forceName${index}">力${index+1}名称:</label>
+                    <input type="text" id="forceName${index}" value="${force.name}">
+                    
+                    <label for="forceMagnitude${index}">大小 (N):</label>
+                    <input type="number" id="forceMagnitude${index}" min="0" value="${force.magnitude}" step="1">
+                    <input type="range" id="forceMagnitudeRange${index}" min="0" max="200" value="${force.magnitude}" step="1">
+                    
+                    <label for="forceDirection${index}">方向 (°):</label>
+                    <input type="number" id="forceDirection${index}" min="0" max="360" value="${force.direction}" step="1">
+                    <input type="range" id="forceDirectionRange${index}" min="0" max="360" value="${force.direction}" step="1">
+                `;
+                
+                forceList.appendChild(forceItem);
+                
+                // 添加事件监听
+                const nameInput = document.getElementById(`forceName${index}`);
+                const magnitudeInput = document.getElementById(`forceMagnitude${index}`);
+                const magnitudeRange = document.getElementById(`forceMagnitudeRange${index}`);
+                const directionInput = document.getElementById(`forceDirection${index}`);
+                const directionRange = document.getElementById(`forceDirectionRange${index}`);
+                
+                nameInput.addEventListener('input', function() {
+                    force.name = this.value;
+                    updateBalanceForceSelect();
+                    drawCanvas();
+                    updateDataTable();
+                });
+                
+                magnitudeInput.addEventListener('input', function() {
+                    const value = parseFloat(this.value);
+                    force.magnitude = value;
+                    magnitudeRange.value = value;
+                    updateForce();
+                });
+                
+                magnitudeRange.addEventListener('input', function() {
+                    const value = parseFloat(this.value);
+                    force.magnitude = value;
+                    magnitudeInput.value = value;
+                    updateForce();
+                });
+                
+                directionInput.addEventListener('input', function() {
+                    let value = parseFloat(this.value);
+                    // 确保方向在0-360度之间
+                    if (value < 0) value = 0;
+                    if (value > 360) value = 360;
+                    force.direction = value;
+                    directionRange.value = value;
+                    updateForce();
+                });
+                
+                directionRange.addEventListener('input', function() {
+                    const value = parseFloat(this.value);
+                    force.direction = value;
+                    directionInput.value = value;
+                    updateForce();
+                });
+            });
+        }
+        
+        // 更新力的范围
+        function updateForceRanges() {
+            const scale = parseFloat(scaleInput.value);
+            const maxMagnitude = Math.floor(200 / scale);
+            
+            forces.forEach((force, index) => {
+                const magnitudeRange = document.getElementById(`forceMagnitudeRange${index}`);
+                if (magnitudeRange) {
+                    magnitudeRange.max = maxMagnitude;
+                }
+            });
+        }
+        
+        // 更新力并重新绘制
+        function updateForce() {
+            if (isExperimentRunning) {
+                calculateBalanceForce();
+            }
+            drawCanvas();
+            updateDataTable();
+        }
+        
+        // 计算平衡力
+        function calculateBalanceForce() {
+            if (forces.length === 0) return;
+            
+            // 计算除平衡力外所有力的合力
+            let resultantX = 0;
+            let resultantY = 0;
+            
+            forces.forEach((force, index) => {
+                if (index !== balanceForceIndex) {
+                    const angleRad = force.direction * Math.PI / 180;
+                    const fx = force.magnitude * Math.cos(angleRad);
+                    const fy = force.magnitude * Math.sin(angleRad);
+                    resultantX += fx;
+                    resultantY += fy;
+                }
+            });
+            
+            // 合力的大小和方向
+            resultantForce.magnitude = Math.sqrt(resultantX * resultantX + resultantY * resultantY);
+            let resultantDirection = Math.atan2(resultantY, resultantX) * 180 / Math.PI;
+            
+            // 调整方向到0-360度范围
+            if (resultantDirection < 0) {
+                resultantDirection += 360;
+            }
+            resultantForce.direction = resultantDirection;
+            
+            // 平衡力的大小和方向
+            const balanceMagnitude = resultantForce.magnitude;
+            let balanceDirection = (resultantDirection + 180) % 360;
+            
+            // 更新平衡力
+            forces[balanceForceIndex].magnitude = balanceMagnitude;
+            forces[balanceForceIndex].direction = balanceDirection;
+            
+            // 记录平衡力变化痕迹
+            if (showTraceCheckbox.checked) {
+                balanceForceTrace.push({
+                    magnitude: balanceMagnitude,
+                    direction: balanceDirection
+                });
+            }
+            
+            // 更新界面
+            const magnitudeInput = document.getElementById(`forceMagnitude${balanceForceIndex}`);
+            const magnitudeRange = document.getElementById(`forceMagnitudeRange${balanceForceIndex}`);
+            const directionInput = document.getElementById(`forceDirection${balanceForceIndex}`);
+            const directionRange = document.getElementById(`forceDirectionRange${balanceForceIndex}`);
+            
+            if (magnitudeInput) magnitudeInput.value = balanceMagnitude.toFixed(2);
+            if (magnitudeRange) magnitudeRange.value = balanceMagnitude.toFixed(2);
+            if (directionInput) directionInput.value = balanceDirection.toFixed(2);
+            if (directionRange) directionRange.value = balanceDirection.toFixed(2);
+        }
+        
+        // 切换实验状态
+        function toggleExperiment() {
+            isExperimentRunning = !isExperimentRunning;
+            
+            if (isExperimentRunning) {
+                startBtn.textContent = '终止实验';
+                clearTraces();
+                calculateBalanceForce();
+            } else {
+                startBtn.textContent = '开始实验';
+                clearTraces();
+            }
+            
+            drawCanvas();
+            updateDataTable();
+        }
+        
+        // 清除痕迹
+        function clearTraces() {
+            parallelogramPoints = [];
+            balanceForceTrace = [];
+            drawCanvas();
+        }
+        
+        // 更新数据表格
+        function updateDataTable() {
+            dataTableBody.innerHTML = '';
+            
+            // 添加各力的数据
+            forces.forEach((force, index) => {
+                const angleRad = force.direction * Math.PI / 180;
+                const fx = force.magnitude * Math.cos(angleRad);
+                const fy = force.magnitude * Math.sin(angleRad);
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${force.name}</td>
+                    <td>${force.magnitude.toFixed(2)}</td>
+                    <td>${force.direction.toFixed(2)}</td>
+                    <td>${fx.toFixed(2)}</td>
+                    <td>${fy.toFixed(2)}</td>
+                `;
+                dataTableBody.appendChild(row);
+            });
+            
+            // 添加合力数据
+            if (isExperimentRunning) {
+                const angleRad = resultantForce.direction * Math.PI / 180;
+                const fx = resultantForce.magnitude * Math.cos(angleRad);
+                const fy = resultantForce.magnitude * Math.sin(angleRad);
+                
+                const row = document.createElement('tr');
+                row.style.backgroundColor = '#e8f4fd';
+                row.innerHTML = `
+                    <td><strong>F<sub>合</sub></strong></td>
+                    <td><strong>${resultantForce.magnitude.toFixed(2)}</strong></td>
+                    <td><strong>${resultantForce.direction.toFixed(2)}</strong></td>
+                    <td><strong>${fx.toFixed(2)}</strong></td>
+                    <td><strong>${fy.toFixed(2)}</strong></td>
+                `;
+                dataTableBody.appendChild(row);
+            }
+        }
+        
+        // 绘制画布
+        function drawCanvas() {
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制坐标系
+            drawCoordinateSystem();
+            
+            // 绘制力
+            drawForces();
+            
+            // 如果实验运行中，绘制平行四边形定则
+            if (isExperimentRunning && showParallelogramCheckbox.checked) {
+                drawParallelogramRule();
+            }
+            
+            // 如果实验运行中，绘制合力
+            if (isExperimentRunning && showResultantCheckbox.checked) {
+                drawResultantForce();
+            }
+            
+            // 如果实验运行中，绘制平衡力变化痕迹
+            if (isExperimentRunning && showTraceCheckbox.checked) {
+                drawBalanceForceTrace();
+            }
+        }
+        
+        // 绘制坐标系
+        function drawCoordinateSystem() {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            
+            // 绘制坐标轴
+            ctx.beginPath();
+            ctx.strokeStyle = '#aaa';
+            ctx.lineWidth = 1;
+            
+            // x轴
+            ctx.moveTo(50, centerY);
+            ctx.lineTo(canvas.width - 50, centerY);
+            
+            // y轴
+            ctx.moveTo(centerX, 50);
+            ctx.lineTo(centerX, canvas.height - 50);
+            
+            ctx.stroke();
+            
+            // 绘制箭头
+            ctx.beginPath();
+            ctx.fillStyle = '#aaa';
+            
+            // x轴箭头
+            ctx.moveTo(canvas.width - 50, centerY);
+            ctx.lineTo(canvas.width - 60, centerY - 5);
+            ctx.lineTo(canvas.width - 60, centerY + 5);
+            
+            // y轴箭头
+            ctx.moveTo(centerX, 50);
+            ctx.lineTo(centerX - 5, 60);
+            ctx.lineTo(centerX + 5, 60);
+            
+            ctx.fill();
+            
+            // 绘制标签
+            ctx.fillStyle = '#666';
+            ctx.font = '14px Arial';
+            ctx.fillText('x', canvas.width - 40, centerY - 10);
+            ctx.fillText('y', centerX + 10, 40);
+            ctx.fillText('O', centerX - 15, centerY + 15);
+        }
+        
+        // 绘制力
+        function drawForces() {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const scale = parseFloat(scaleInput.value);
+            
+            forces.forEach((force, index) => {
+                const angleRad = force.direction * Math.PI / 180;
+                const magnitudePixels = force.magnitude * scale;
+                const endX = centerX + magnitudePixels * Math.cos(angleRad);
+                const endY = centerY - magnitudePixels * Math.sin(angleRad); // 注意：y轴向下为正
+                
+                // 绘制力箭头
+                ctx.beginPath();
+                ctx.strokeStyle = force.isBalance ? '#e74c3c' : '#2c3e50';
+                ctx.lineWidth = force.isBalance ? 3 : 2;
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(endX, endY);
+                ctx.stroke();
+                
+                // 绘制箭头头部
+                drawArrowHead(centerX, centerY, endX, endY, force.isBalance ? '#e74c3c' : '#2c3e50');
+                
+                // 绘制力标签
+                ctx.fillStyle = force.isBalance ? '#e74c3c' : '#2c3e50';
+                ctx.font = 'bold 14px Arial';
+                const labelX = centerX + (magnitudePixels / 2) * Math.cos(angleRad);
+                const labelY = centerY - (magnitudePixels / 2) * Math.sin(angleRad);
+                ctx.fillText(force.name, labelX, labelY - 10);
+                
+                // 绘制力的大小和方向
+                ctx.font = '12px Arial';
+                ctx.fillText(`${force.magnitude.toFixed(1)}N, ${force.direction.toFixed(1)}°`, labelX, labelY + 15);
+            });
+        }
+        
+        // 绘制合力
+        function drawResultantForce() {
+            if (!isExperimentRunning || resultantForce.magnitude === 0) return;
+            
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const scale = parseFloat(scaleInput.value);
+            
+            const angleRad = resultantForce.direction * Math.PI / 180;
+            const magnitudePixels = resultantForce.magnitude * scale;
+            const endX = centerX + magnitudePixels * Math.cos(angleRad);
+            const endY = centerY - magnitudePixels * Math.sin(angleRad); // 注意：y轴向下为正
+            
+            // 绘制合力箭头
+            ctx.beginPath();
+            ctx.strokeStyle = '#3498db';
+            ctx.lineWidth = 3;
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+            
+            // 绘制箭头头部
+            drawArrowHead(centerX, centerY, endX, endY, '#3498db');
+            
+            // 绘制合力标签
+            ctx.fillStyle = '#3498db';
+            ctx.font = 'bold 14px Arial';
+            const labelX = centerX + (magnitudePixels / 2) * Math.cos(angleRad);
+            const labelY = centerY - (magnitudePixels / 2) * Math.sin(angleRad);
+            ctx.fillText('F合', labelX, labelY - 10);
+            
+            // 绘制合力的大小和方向
+            ctx.font = '12px Arial';
+            ctx.fillText(`${resultantForce.magnitude.toFixed(1)}N, ${resultantForce.direction.toFixed(1)}°`, labelX, labelY + 15);
+        }
+        
+        // 绘制箭头头部
+        function drawArrowHead(fromX, fromY, toX, toY, color) {
+            const headLength = 10;
+            const angle = Math.atan2(toY - fromY, toX - fromX);
+            
+            ctx.beginPath();
+            ctx.fillStyle = color;
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(
+                toX - headLength * Math.cos(angle - Math.PI / 6),
+                toY - headLength * Math.sin(angle - Math.PI / 6)
+            );
+            ctx.lineTo(
+                toX - headLength * Math.cos(angle + Math.PI / 6),
+                toY - headLength * Math.sin(angle + Math.PI / 6)
+            );
+            ctx.closePath();
+            ctx.fill();
+        }
+        
+        // 绘制平行四边形定则
+        function drawParallelogramRule() {
+            if (forces.length < 2) return;
+            
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const scale = parseFloat(scaleInput.value);
+            
+            ctx.strokeStyle = '#3498db';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            
+            // 计算除平衡力外的所有力
+            const nonBalanceForces = forces.filter((force, index) => index !== balanceForceIndex);
+            
+            // 依次进行力的合成
+            let currentResultant = {
+                x: 0,
+                y: 0
+            };
+            
+            for (let i = 0; i < nonBalanceForces.length; i++) {
+                const force = nonBalanceForces[i];
+                const angleRad = force.direction * Math.PI / 180;
+                const fx = force.magnitude * Math.cos(angleRad) * scale;
+                const fy = -force.magnitude * Math.sin(angleRad) * scale; // 注意：y轴向下为正
+                
+                if (i === 0) {
+                    currentResultant.x = fx;
+                    currentResultant.y = fy;
+                } else {
+                    // 绘制平行四边形
+                    ctx.beginPath();
+                    ctx.moveTo(centerX, centerY);
+                    ctx.lineTo(centerX + currentResultant.x, centerY + currentResultant.y);
+                    ctx.lineTo(centerX + currentResultant.x + fx, centerY + currentResultant.y + fy);
+                    ctx.lineTo(centerX + fx, centerY + fy);
+                    ctx.closePath();
+                    ctx.stroke();
+                    
+                    // 更新合力
+                    currentResultant.x += fx;
+                    currentResultant.y += fy;
+                }
+                
+                // 记录点用于绘制痕迹
+                parallelogramPoints.push({
+                    x: centerX + currentResultant.x,
+                    y: centerY + currentResultant.y
+                });
+            }
+            
+            ctx.setLineDash([]);
+        }
+        
+        // 绘制平衡力变化痕迹
+        function drawBalanceForceTrace() {
+            if (balanceForceTrace.length === 0) return;
+            
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const scale = parseFloat(scaleInput.value);
+            
+            ctx.beginPath();
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([3, 3]);
+            
+            balanceForceTrace.forEach((point, index) => {
+                const angleRad = point.direction * Math.PI / 180;
+                const magnitudePixels = point.magnitude * scale;
+                const x = centerX + magnitudePixels * Math.cos(angleRad);
+                const y = centerY - magnitudePixels * Math.sin(angleRad); // 注意：y轴向下为正
+                
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+        
+        // 初始化
+        window.onload = init;
+    </script>
+</body>
+</html>
